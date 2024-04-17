@@ -3,6 +3,7 @@ import torch
 import sys
 import argparse
 from typing import List
+from tqdm import tqdm
 
 def generate_summaries_cnndm(args):
     device = f"cuda:{args.gpuid}"
@@ -13,11 +14,11 @@ def generate_summaries_cnndm(args):
     max_length = 140
     min_length = 55
     count = 1
-    bsz = 8
+    bsz = args.batch_size
     with open(args.src_dir) as source, open(args.tgt_dir, 'w') as fout:
         sline = source.readline().strip().lower()
         slines = [sline]
-        for sline in source:
+        for sline in tqdm(source):
             if count % 100 == 0:
                 print(count, flush=True)
             if count % bsz == 0:
@@ -110,6 +111,7 @@ if __name__ ==  "__main__":
     parser.add_argument("--src_dir", type=str, help="source file")
     parser.add_argument("--tgt_dir", type=str, help="target file")
     parser.add_argument("--dataset", type=str, default="cnndm", help="dataset")
+    parser.add_argument("--batch_size", type=int, default=1)
     args = parser.parse_args()
     if args.dataset == "cnndm":
         generate_summaries_cnndm(args)
