@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 def generate_summaries_cnndm(args):
     device = f"cuda:{args.gpuid}"
-    mname = "facebook/bart-large-cnn"
+    mname = args.model_name_or_path
     model = BartForConditionalGeneration.from_pretrained(mname).to(device)
     model.eval()
     tokenizer = BartTokenizer.from_pretrained(mname)
@@ -112,6 +112,7 @@ if __name__ ==  "__main__":
     parser.add_argument("--tgt_dir", type=str, help="target file")
     parser.add_argument("--dataset", type=str, default="cnndm", help="dataset")
     parser.add_argument("--batch_size", type=int, default=1)
+    parser.add_argument("--model_name_or_path", type=str, default="facebook/bart-large-cnn", help="model name or model path")
     args = parser.parse_args()
     if args.dataset == "cnndm":
         generate_summaries_cnndm(args)

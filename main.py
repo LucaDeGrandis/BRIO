@@ -17,7 +17,7 @@ from model import RankingLoss, BRIO
 import logging
 from label_smoothing_loss import label_smoothing_loss
 from nltk import sent_tokenize, word_tokenize
-from config import cnndm_setting, xsum_setting
+from config import cnndm_setting
 from tqdm import tqdm
 
 logging.getLogger("transformers.tokenization_utils").setLevel(logging.ERROR)
