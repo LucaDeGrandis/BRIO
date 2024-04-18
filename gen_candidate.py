@@ -4,13 +4,22 @@ import sys
 import argparse
 from typing import List
 from tqdm import tqdm
+import os
+from model import RankingLoss, BRIO
+
 
 def generate_summaries_cnndm(args):
     device = f"cuda:{args.gpuid}"
     mname = args.model_name_or_path
-    model = BartForConditionalGeneration.from_pretrained(mname).to(device)
-    model.eval()
-    tokenizer = BartTokenizer.from_pretrained(mname)
+    tokname = args.tokenizer_name_or_path
+    tokenizer = BartTokenizer.from_pretrained(tokname)
+    if os.path.exists(mname):
+        model = BRIO(tokname, tokenizer.pad_token_id, False).to(device)
+        model.load_state_dict(torch.load(mname, map_location=f'cuda:0'))
+        model.generation_mode()
+    else:
+        model = BartForConditionalGeneration.from_pretrained(mname).to(device)
+        model.eval()
     max_length = 140
     min_length = 55
     count = 1
@@ -27,7 +36,7 @@ def generate_summaries_cnndm(args):
                     summaries = model.generate(
                         input_ids=dct["input_ids"].to(device),
                         attention_mask=dct["attention_mask"].to(device),
-                        num_return_sequences=16, num_beam_groups=16, diversity_penalty=1.0, num_beams=16,
+                        num_return_sequences=16, num_beam_groups=16, diversity_penalty=args.diversity_penalty, num_beams=16,
                         max_length=max_length + 2,  # +2 from original because we start at step=1 and stop before max_length
                         min_length=min_length + 1,  # +1 from original because we start at step=1
                         no_repeat_ngram_size=3,
@@ -51,7 +60,7 @@ def generate_summaries_cnndm(args):
                 summaries = model.generate(
                     input_ids=dct["input_ids"].to(device),
                     attention_mask=dct["attention_mask"].to(device),
-                    num_return_sequences=16, num_beam_groups=16, diversity_penalty=1.0, num_beams=16,
+                    num_return_sequences=16, num_beam_groups=16, diversity_penalty=args.diversity_penalty, num_beams=16,
                     max_length=max_length + 2,  # +2 from original because we start at step=1 and stop before max_length
                     min_length=min_length + 1,  # +1 from original because we start at step=1
                     no_repeat_ngram_size=3,
@@ -113,6 +122,8 @@ if __name__ ==  "__main__":
     parser.add_argument("--dataset", type=str, default="cnndm", help="dataset")
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--model_name_or_path", type=str, default="facebook/bart-large-cnn", help="model name or model path")
+    parser.add_argument("--tokenizer_name_or_path", type=str, default="facebook/bart-large-cnn", help="tokenizer name or tokenizer path")
+    parser.add_argument("--diversity_penalty", type=float, default=1.0, help="the value for the diversity penalty")
     args = parser.parse_args()
     if args.dataset == "cnndm":
         generate_summaries_cnndm(args)
