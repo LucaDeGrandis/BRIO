@@ -13,13 +13,13 @@ def generate_summaries_cnndm(args):
     mname = args.model_name_or_path
     tokname = args.tokenizer_name_or_path
     tokenizer = BartTokenizer.from_pretrained(tokname)
-    if os.path.exists(mname):
-        model = BRIO(tokname, tokenizer.pad_token_id, False).to(device)
-        model.load_state_dict(torch.load(mname, map_location=f'cuda:0'))
-        model.generation_mode()
-    else:
-        model = BartForConditionalGeneration.from_pretrained(mname).to(device)
-        model.eval()
+    # if os.path.exists(mname):
+    #     model = BRIO(tokname, tokenizer.pad_token_id, False).to(device)
+    #     model.load_state_dict(torch.load(mname, map_location=f'cuda:0'))
+    #     model.generation_mode()
+    # else:
+    model = BartForConditionalGeneration.from_pretrained(mname).to(device)
+    model.eval()
     max_length = 140
     min_length = 55
     count = 1

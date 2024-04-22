@@ -209,6 +209,27 @@ def evaluation(args):
 
 
 def test(dataloader, gen_dataloader, model, args, tok, gpuid, do_sample=False):
+    """Evaluate the model on the test dataset.
+
+    Args:
+        dataloader (torch.utils.data.DataLoader): DataLoader for the test dataset.
+        gen_dataloader (torch.utils.data.DataLoader): DataLoader for the generation dataset.
+        model (torch.nn.Module): The model to be evaluated.
+        args (argparse.Namespace): Command-line arguments.
+        tok (transformers.PreTrainedTokenizer): Tokenizer for encoding and decoding text.
+        gpuid (int): GPU ID to be used for evaluation.
+        do_sample (bool, optional): Whether to generate samples during evaluation. Defaults to False.
+
+    Returns:
+        dict: Dictionary containing the evaluation metrics:
+            - "rouge1" (float): ROUGE-1 score.
+            - "rouge2" (float): ROUGE-2 score.
+            - "rougeLsum" (float): ROUGE-Lsum score.
+            - "sample_rouge1" (float): ROUGE-1 score for generated samples.
+            - "sample_rouge2" (float): ROUGE-2 score for generated samples.
+            - "sample_rougeLsum" (float): ROUGE-Lsum score for generated samples.
+            - "mle_loss" (float): Mean loss calculated using CrossEntropyLoss or label smoothing loss.
+    """
     model.eval()
     if args.cuda:
         device = f"cuda:{gpuid}"
