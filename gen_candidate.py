@@ -1,4 +1,4 @@
-from transformers import BartForConditionalGeneration, BartTokenizer, PegasusTokenizer, PegasusForConditionalGeneration
+from transformers import BartForConditionalGeneration, AutoTokenizer, PegasusTokenizer, PegasusForConditionalGeneration
 import torch
 import sys
 import argparse
@@ -12,7 +12,7 @@ def generate_summaries_cnndm(args):
     device = f"cuda:{args.gpuid}"
     mname = args.model_name_or_path
     tokname = args.tokenizer_name_or_path
-    tokenizer = BartTokenizer.from_pretrained(tokname)
+    tokenizer = AutoTokenizer.from_pretrained(tokname)
     # if os.path.exists(mname):
     #     model = BRIO(tokname, tokenizer.pad_token_id, False).to(device)
     #     model.load_state_dict(torch.load(mname, map_location=f'cuda:0'))
@@ -40,7 +40,7 @@ def generate_summaries_cnndm(args):
                         max_length=max_length + 2,  # +2 from original because we start at step=1 and stop before max_length
                         min_length=min_length + 1,  # +1 from original because we start at step=1
                         no_repeat_ngram_size=3,
-                        length_penalty=2.0,
+                        length_penalty=args.length_penalty,
                         early_stopping=True,
                     )
                     dec = [tokenizer.decode(g, skip_special_tokens=True, clean_up_tokenization_spaces=False) for g in summaries]
@@ -124,6 +124,7 @@ if __name__ ==  "__main__":
     parser.add_argument("--model_name_or_path", type=str, default="facebook/bart-large-cnn", help="model name or model path")
     parser.add_argument("--tokenizer_name_or_path", type=str, default="facebook/bart-large-cnn", help="tokenizer name or tokenizer path")
     parser.add_argument("--diversity_penalty", type=float, default=1.0, help="the value for the diversity penalty")
+    parser.add_argument("--length_penalty", type=float, default=2.0, help="the value for the diversity penalty")
     args = parser.parse_args()
     if args.dataset == "cnndm":
         generate_summaries_cnndm(args)

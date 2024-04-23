@@ -6,7 +6,7 @@ import numpy as np
 import os
 import random
 from compare_mt.rouge.rouge_scorer import RougeScorer
-from transformers import BartTokenizer, PegasusTokenizer
+from transformers import BartTokenizer, PegasusTokenizer, AutoTokenizer
 from utils import Recorder
 from data_utils import to_cuda, collate_mp_brio, BrioDataset
 from torch.utils.data import DataLoader
@@ -59,6 +59,7 @@ def base_setting(args):
     args.adding = getattr(args, "adding", 0) # used for numerical stability
     args.eval_interval = getattr(args, "eval_interval", 1000) # evaluation intervals
     args.num_beams = getattr(args, "num_beams", 4) # number of beams for beam search
+    args.tok_path = getattr(args, "tok_path", '') # number of beams for beam search
 
 def evaluation(args):
     # load data
@@ -71,7 +72,7 @@ def evaluation(args):
     if args.is_pegasus:
         tok = PegasusTokenizer.from_pretrained(args.model_type)
     else:
-        tok = BartTokenizer.from_pretrained(args.model_type)
+        tok = AutoTokenizer.from_pretrained(args.tok_path)
     collate_fn = partial(collate_mp_brio, pad_token_id=tok.pad_token_id, is_test=True)
     test_set = BrioDataset(f"./{args.dataset}/{args.datatype}/test", args.model_type, is_test=True, max_len=512,
      is_sorted=False, max_num=args.max_num, is_untok=True, total_len=args.total_len, is_pegasus=args.is_pegasus)
@@ -376,11 +377,11 @@ def run(rank, args):
     if args.is_pegasus:
         tok = PegasusTokenizer.from_pretrained(args.model_type)
     else:
-        tok = BartTokenizer.from_pretrained(args.model_type)
+        tok = AutoTokenizer.from_pretrained(args.tok_path)
     collate_fn = partial(collate_mp_brio, pad_token_id=tok.pad_token_id, is_test=False)
     collate_fn_val = partial(collate_mp_brio, pad_token_id=tok.pad_token_id, is_test=True)
-    train_set = BrioDataset(f"./{args.dataset}/{args.datatype}/train", args.model_type, max_len=args.max_len, max_num=args.max_num, total_len=args.total_len, is_pegasus=args.is_pegasus)
-    val_set = BrioDataset(f"./{args.dataset}/{args.datatype}/val", args.model_type, is_test=True, max_len=512, is_sorted=False, max_num=args.max_num, total_len=args.total_len, is_pegasus=args.is_pegasus)
+    train_set = BrioDataset(f"./{args.dataset}/{args.datatype}/train", args.tok_path, max_len=args.max_len, max_num=args.max_num, total_len=args.total_len, is_pegasus=args.is_pegasus)
+    val_set = BrioDataset(f"./{args.dataset}/{args.datatype}/val", args.tok_path, is_test=True, max_len=512, is_sorted=False, max_num=args.max_num, total_len=args.total_len, is_pegasus=args.is_pegasus)
     if is_mp:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
     	 train_set, num_replicas=world_size, rank=rank, shuffle=True)

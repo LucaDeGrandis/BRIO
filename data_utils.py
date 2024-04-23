@@ -2,7 +2,7 @@ from torch.utils.data import Dataset
 import os
 import json
 import torch
-from transformers import BartTokenizer, PegasusTokenizer
+from transformers import BartTokenizer, PegasusTokenizer, AutoTokenizer
 
 
 def to_cuda(batch, gpuid):
@@ -31,7 +31,7 @@ class BrioDataset(Dataset):
         if is_pegasus:
             self.tok = PegasusTokenizer.from_pretrained(model_type, verbose=False)
         else:
-            self.tok = BartTokenizer.from_pretrained(model_type, verbose=False)
+            self.tok = AutoTokenizer.from_pretrained(model_type, verbose=False)
         self.maxlen = max_len
         self.is_test = is_test
         self.total_len = total_len
